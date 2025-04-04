@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from flask_login import current_user, login_user
+# from flask_login import current_user, login_user
 from flask_cors import CORS
 import sqlite3
 from sqlite3 import Error
