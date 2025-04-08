@@ -1,24 +1,36 @@
-import axios from 'axios'; // run "npm install axios"
+//import axios from 'axios'; // run "npm install axios"
 import '../styles/login.css';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
-    const verifyUser = async () => {
-        // Collect information from HTML
-        const username = document.getElementById("Username").value;
-        const password = document.getElementById("Password").value;
-        if(!username || !password){return;}
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
-        let data = {"username":username, "password":password};
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-        // Reset input
-        document.getElementById("Username").value = "";
-        document.getElementById("Password").value = "";
-        
-        let url = `http://127.0.0.1:5000/user`;
-        const response = await axios.post(url, data);
+    const response = await fetch('http://localhost:5000/user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username, password })
+    });
 
-        console.log(response.data); // replace with page redirect if 1, nothing if 0
+    const data = await response.json();
+    console.log(data);
+
+    if (data.status === 'success') {
+      if (data.role === 'professor') {
+        navigate('/professorhome');
+      } else if (data.role === 'student') {
+        navigate('/studenthome');
+      }
+    } else {
+      alert('Invalid username or password.');
     }
+  };
 
     return (
         <div className="Page">
@@ -26,17 +38,31 @@ function Login() {
                 <p className='Title'>ACME University</p>
 
                 <section className='Content'>
-                    <div className='InputField'>
-                        <label htmlFor='Username'>Username</label>
-                        <input type="text" className='Username' id='Username'></input>
-                    </div>
+                    <form onSubmit={handleLogin}>
+                        <div className='InputField'>
+                            <label htmlFor='Username'>Username</label>
+                            <input
+                            type="text"
+                            placeholder="Username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                            />
+                        </div>
 
-                    <div className='InputField'>
-                        <label htmlFor='Password'>Password</label>
-                        <input type="text" className='Password' id='Password'></input>
-                    </div>
+                        <div className='InputField'>
+                            <label htmlFor='Password'>Password</label>
+                            <input
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            />
+                        </div>
 
-                    <button type="button" onClick={verifyUser}>Sign In</button>
+                        <button type="submit" >Sign In</button>
+                    </form>
                 </section>
             </section>
         </div>
