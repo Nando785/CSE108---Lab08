@@ -96,5 +96,22 @@ def get_current_user():
         return jsonify({"id": current_user.get_id(), "role": current_user.role})
     return jsonify({"status": "not authenticated"}), 401
 
+@app.route('/classes')
+def return_prof_classes():
+    conn = openConnection(DB_FILE)
+    requestData = request.get_json()
+    
+    with conn:
+        cursor = conn.cursor('''SELECT c_name, c_teacher, c_time, c_enrollmentCnt, c_maxEnrollment 
+                                    FROM courses
+                                    WHERE p_userid = ?''', (requestData["profId"],))
+        
+        cursor.execute()
+        data = cursor.fetchall()
+        
+    closeConnection(conn, DB_FILE)
+    
+    return(dict(data))
+
 if __name__ == '__main__':
     app.run(debug=True)
