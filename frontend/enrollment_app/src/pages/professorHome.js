@@ -2,7 +2,7 @@ import '../styles/professor.css';
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function StudentHome() {
+function ProfessorHome() {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -12,7 +12,7 @@ function StudentHome() {
       });
       const data = await res.json();
 
-      if (data.status === "not authenticated" || data.role !== "student") {
+      if (data.status === "not authenticated" || data.role !== "professor") {
         navigate('/');
       }
     };
@@ -30,18 +30,22 @@ function StudentHome() {
   return (
     <div className="Page">
       <section className='Container'>
-        <div className="Header">
-          <p className="WelcomeText"> Welcome Professor</p>
-          <p className='Title'>ACME University</p>
-          <button onClick={handleLogout}>Logout</button>
+        <div id="Header">
+          <p id="WelcomeText"> Welcome Professor</p>
+          <p id='Title'>ACME University</p>
+          <button id="LogoutButton" onClick={handleLogout}>Logout</button>
         </div>
 
-          <section className='Content'>                    
-            test
+        <section id='Content'>                    
+            <div id="ContentTitle"> 
+              Back Button Here/Filler + Course Title + Possible Filler Block
+            </div>
+            
+            <div id="TableContainer"> Table Here </div>
           </section>
       </section>
   </div>
   );
 }
 
-export default StudentHome;
+export default ProfessorHome;

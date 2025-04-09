@@ -2,12 +2,12 @@
 #
 # 1) python3 -m venv venv               <- create environment 
 #                                           (do so in root folder)
-# 2) .\venv\Scripts\activate            <- activate environment 
+# 2) .\venv\bin\activate            <- activate environment 
 #                                           (May need to adjust file directory in command)
 # 3) pip install -r requirements.txt    <- install dependencies
 #
 # 4) deactivate                         <- exit environment
 
-Flask
-Flask-Login
-Flask-CORS
+flask
+flask-Login
+flask-CORS

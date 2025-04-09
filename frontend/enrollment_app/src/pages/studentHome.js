@@ -30,15 +30,19 @@ function StudentHome() {
   return (
     <div className="Page">
       <section className='Container'>
-        <div className="Header">
-          <p className="WelcomeText"> Welcome Student</p>
-          <p className='Title'>ACME University</p>
-          <button onClick={handleLogout}>Logout</button>
+        <div id="Header">
+          <p id="WelcomeText"> Welcome Student</p>
+          <p id='Title'>ACME University</p>
+          <button onClick={handleLogout} id="LogoutButton">Logout</button>
         </div>
 
-          <section className='Content'>                    
-            test
-          </section>
+        <section id='Content'>                    
+          <div id="ContentTitle"> 
+            Back Button Here/Filler + Course Title + Possible Filler Block
+          </div>
+          
+          <div id="TableContainer"> Table Here </div>
+        </section>
       </section>
   </div>
   );
