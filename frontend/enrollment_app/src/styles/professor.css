@@ -1,4 +1,4 @@
-.Page {
+.ProfPage .Page {
     width: 100vw;
     height: 100vh;
     background-image: url('../images/homeBackground.jpg');
@@ -10,7 +10,7 @@
     align-items: center;
 }
 
-.Container {
+.ProfPage .Container {
     width: 50%;
     height: 80%;
     background-color: #F9F6F2;
@@ -22,7 +22,7 @@
     padding-top: 20px;
 }
 
-#Title {
+.ProfPage #Title {
     margin-top: 0px;
     align-self: flex-start;
     width: 100%;
@@ -32,7 +32,7 @@
     font-size: 25px;
 }
 
-#Content {
+.ProfPage #Content {
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -43,12 +43,12 @@
     height: 100%;
 }
 
-.InputField {
+.ProfPage .InputField {
     display: flex;
     flex-direction: column;
 }
 
-.Header {
+.ProfPage .Header {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
@@ -57,28 +57,28 @@
     width: 100%;
 }
 
-#WelcomeText {
+.ProfPage #WelcomeText {
     margin-left: 50px;
     margin-right: 50px;
 }
 
-#LogoutButton {
+.ProfPage #LogoutButton {
     width: 70px;
     height: 70px;
     margin-left: 50px;
     margin-right: 50px;
 }
 
-#ContentTitle {
-    background-color: aqua;
+.ProfPage #ContentTitle {
+    /* background-color: white; */
     width:100%;
     height:15%;
 }
 
-#TableContainer {
+.ProfPage #TableContainer {
     width:100%;
     height:85%;
-    background-color: red;
+    /* background-color: red; */
     display: flex;
     justify-content: center;
     align-items: center;

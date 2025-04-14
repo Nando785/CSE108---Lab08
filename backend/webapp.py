@@ -34,7 +34,7 @@ def openConnection(_dbFile):
 
 # Function for closing database connection
 def closeConnection(_conn, _dbFile):
-    print("Close database: ", _dbFile)
+    
     try:
         _conn.close()
         print("successfully closed connection")
@@ -93,18 +93,50 @@ def load_user(user_id):
 @app.route('/current_user')
 def get_current_user():
     if current_user.is_authenticated:
-        return jsonify({"id": current_user.get_id(), "role": current_user.role})
+        user_id = current_user.get_id()
+        role = current_user.role
+        
+        # Connect to database
+        conn = openConnection(DB_FILE)
+        lastName =  None
+        firstName = None
+        
+        if role == "professor":
+            # Remove 'prof_' prefix to get the professor's actual user key
+            prof_id = user_id[5:]  # Remove 'prof_' from the start
+            cursor = conn.cursor()
+            cursor.execute('SELECT p_lastName, p_firstName FROM professors WHERE p_userkey = ?', (prof_id,))
+            result = cursor.fetchone()
+            if result:
+                lastName = result[0]
+                firstName = result[1]
+        else:
+            # Remove 'prof_' prefix to get the student's actual user key
+            student_id = user_id[4:]  # Remove 'prof_' from the start
+            cursor = conn.cursor()
+            cursor.execute('SELECT s_lastName, s_firstName FROM students WHERE s_userkey = ?', (student_id,))
+            result = cursor.fetchone()
+            if result:
+                lastName = result[0]
+                firstName = result[1]
+        
+        return jsonify({"id": current_user.get_id(), "role": current_user.role, "firstName":firstName, "lastName":lastName})
     return jsonify({"status": "not authenticated"}), 401
 
-@app.route('/classes')
+@app.route('/profClasses', methods=['POST'])
 def return_prof_classes():
     conn = openConnection(DB_FILE)
     requestData = request.get_json()
     
+    if not requestData or 'profId' not in requestData:
+        return jsonify({"error": "profId is required"}), 400
+    
     with conn:
         cursor = conn.cursor('''SELECT c_name, c_teacher, c_time, c_enrollmentCnt, c_maxEnrollment 
                                     FROM courses
-                                    WHERE p_userid = ?''', (requestData["profId"],))
+                                    JOIN professors
+                                        ON p_userkey = c_userkey
+                                    WHERE c_teacher = ?''', (requestData["profId"],))
         
         cursor.execute()
         data = cursor.fetchall()
@@ -113,5 +145,30 @@ def return_prof_classes():
     
     return(dict(data))
 
+
+@app.route('/studentClasses', methods=['GET'])
+def return_student_courses():
+    conn = openConnection(DB_FILE)
+    user_id = current_user.get_id()
+    
+    with conn:
+        cursor = conn.cursor()
+        user_id = user_id[4:]
+        cursor.execute('''SELECT c_name, p_firstName, p_lastName, c_time, c_enrollmentCnt, c_maxEnrollment
+                                    FROM students
+                                    JOIN courseStats
+                                        ON cs_userKey = s_userkey
+                                    JOIN courses
+                                        ON c_classkey = cs_classkey
+                                    JOIN professors
+                                        ON c_teacherKey = p_userKey
+                                    WHERE s_userKey = ?''', (user_id,))
+        data = cursor.fetchall()
+                    
+    closeConnection(conn, DB_FILE)
+    return jsonify(data)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+    

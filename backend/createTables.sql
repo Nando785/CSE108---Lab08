@@ -33,6 +33,10 @@ CREATE TABLE courseStats(
 INSERT into students values (1002, 'Jane', 'Smith', 'student', 'password');
 INSERT into professors values (2001, 'John', 'Doe', 'professor', 'password');
 
+INSERT into courses values (3001, 'CSE 108', 2001, 'MWF 2:00-2:50 PM', 1, 10);
+INSERT into courses values (3002, 'CSE 120', 2001, 'TR 11:00-11:50 AM', 1, 10);
+INSERT into courseStats values (3001, 1002, 90);
+
 -- Table Deletion *Debug*
 DROP TABLE IF EXISTS students;
 DROP TABLE IF EXISTS professors;
