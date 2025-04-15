@@ -4,7 +4,7 @@
 #                                           (do so in root folder)
 # 2) .\venv\bin\activate            <- activate environment 
 #                                           (May need to adjust file directory in command)
-# 3) pip install -r requirements.txt    <- install dependencies
+# 3) pip install -r requriements.txt    <- install dependencies
 #
 # 4) deactivate                         <- exit environment
 

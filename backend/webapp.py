@@ -154,7 +154,7 @@ def return_student_courses():
     with conn:
         cursor = conn.cursor()
         user_id = user_id[4:]
-        cursor.execute('''SELECT c_name, p_firstName, p_lastName, c_time, c_enrollmentCnt, c_maxEnrollment
+        cursor.execute('''SELECT c_name, p_firstName, p_lastName, c_time, c_enrollmentCnt, c_maxEnrollment, cs_classKey
                                     FROM students
                                     JOIN courseStats
                                         ON cs_userKey = s_userkey
@@ -168,6 +168,62 @@ def return_student_courses():
     closeConnection(conn, DB_FILE)
     return jsonify(data)
 
+@app.route('/allClasses', methods=['GET'])
+def return_all_courses():
+    conn = openConnection(DB_FILE)
+    user_id = current_user.get_id()
+    
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute('''SELECT c_name, p_firstName, p_lastName, c_time, c_enrollmentCnt, c_maxEnrollment, c_classKey
+                            FROM courses
+                            JOIN professors
+                                ON c_teacherKey = p_userKey''')
+        data = cursor.fetchall()
+                    
+    closeConnection(conn, DB_FILE)
+    return jsonify(data)
+
+@app.route('/addCourse', methods=['POST'])
+def add_student_course():
+    data = request.get_json()
+    courseId = data['course']
+    studentId = current_user.get_id()[4:]
+    conn = openConnection(DB_FILE)
+    with conn:
+        cursor = conn.cursor()
+        
+        
+        # Register student in class
+        cursor.execute('''INSERT INTO courseStats
+                            VALUES (?, ?, ?)''', (courseId, studentId, 0,))
+        # Update course enrollment count
+        cursor.execute('''UPDATE courses
+                            SET c_enrollmentCnt = c_enrollmentCnt+1
+                            WHERE c_classkey = ?''', (courseId,))
+    
+    closeConnection(conn, DB_FILE)
+    return jsonify({'message': 'course added successfully'}), 200
+
+@app.route('/removeCourse', methods=['POST'])
+def remove_student_course():
+    data = request.get_json()
+    courseId = data['course']
+    studentId = current_user.get_id()[4:]
+    conn = openConnection(DB_FILE)
+    with conn:
+        cursor = conn.cursor()
+        # Unregister student in class
+        cursor.execute('''DELETE FROM courseStats
+                            WHERE cs_classKey = ?
+                            AND cs_userKey = ?''', (courseId, studentId,))
+        # Update course enrollment count
+        cursor.execute('''UPDATE courses
+                            SET c_enrollmentCnt = c_enrollmentCnt-1
+                            WHERE c_classkey = ?''', (courseId,))
+    
+    closeConnection(conn, DB_FILE)
+    return jsonify({'message': 'course removes successfully'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

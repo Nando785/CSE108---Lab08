@@ -105,6 +105,20 @@
     align-items: center;
 }
 
+.enrollBtn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+  }
+  
+.enrollBtn img.icon {
+    width: 20px;
+    height: 20px;
+}
+
 thead, tr, th, td {
     border: 1px solid;
     width: 150px;

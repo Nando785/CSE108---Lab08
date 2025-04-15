@@ -30,12 +30,17 @@ CREATE TABLE courseStats(
 );
 
 -- Mock Info for Testing *Debug*
-INSERT into students values (1002, 'Jane', 'Smith', 'student', 'password');
+INSERT into students values (1001, 'Jane', 'Smith', 'student', 'password');
+INSERT into students values (1002, 'Emily', 'Davis', 'student1', 'password1');
 INSERT into professors values (2001, 'John', 'Doe', 'professor', 'password');
+INSERT into professors values (2002, 'David', 'Miller', 'professor1', 'password1');
 
-INSERT into courses values (3001, 'CSE 108', 2001, 'MWF 2:00-2:50 PM', 1, 10);
-INSERT into courses values (3002, 'CSE 120', 2001, 'TR 11:00-11:50 AM', 1, 10);
-INSERT into courseStats values (3001, 1002, 90);
+INSERT into courses values (3001, 'CSE 108', 2001, 'MWF 2:00-2:50 PM', 0, 1);
+INSERT into courses values (3002, 'CSE 120', 2001, 'TR 11:00-11:50 AM', 0, 1);
+INSERT into courses values (3003, 'CSE 031', 2002, 'MWF 9:00-10:50 AM', 0, 1);
+--INSERT into courseStats values (3001, 1002, 90);
+
+DELETE FROM courseStats WHERE cs_userkey = 1002 AND cs_classkey = 3002;
 
 -- Table Deletion *Debug*
 DROP TABLE IF EXISTS students;

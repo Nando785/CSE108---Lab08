@@ -35,51 +35,118 @@ function StudentHome() {
     navigate('/');
   };
 
-  const loadCourses = async () => {
-    const res = await fetch('http://localhost:5000/studentClasses', {
-      method: 'GET',
-      credentials: 'include'
-    });
-    const data = await res.json();
-
-    document.getElementById("AddCourseButton").style.backgroundColor = "#cac7c3"; // set un-selected
-    document.getElementById("CoursesButton").style.backgroundColor = "#aba8a4"; // set selected
-
+  const populateTable = async (mode = "view") => {
+    let data = [];
+    let enrolledCourses = [];
+  
+    if (mode === "add") {
+      const [allRes, enrolledRes] = await Promise.all([
+        fetch('http://localhost:5000/allClasses', { method: 'GET', credentials: 'include' }),
+        fetch('http://localhost:5000/studentClasses', { method: 'GET', credentials: 'include' })
+      ]);
+      data = await allRes.json();
+      enrolledCourses = await enrolledRes.json();
+    } else {
+      const res = await fetch('http://localhost:5000/studentClasses', { method: 'GET', credentials: 'include' });
+      data = await res.json();
+    }
+  
+    // Create a set of enrolled course keys for quick lookup
+    const enrolledSet = new Set(enrolledCourses.map(course => course[6]));
+  
     let content = document.getElementById("TableContainer");
     content.innerHTML = "";
-
+  
     let table = document.createElement("table");
+    table.setAttribute("id", "table");
     table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>Course Name</th>
-                    <th>Teacher</th>
-                    <th>Time</th>
-                    <th>Students Enrolled</th>
-                </tr>
-            </thead>
-        `;
-
-    for(let i = 0; i < data.length; i++){
-      console.log(1);
+      <thead>
+        <tr>
+          <th>Course Name</th>
+          <th>Teacher</th>
+          <th>Time</th>
+          <th>Students Enrolled</th>
+          ${mode === "add" ? "<th>Action</th>" : ""}
+        </tr>
+      </thead>
+    `;
+  
+    for (let i = 0; i < data.length; i++) {
+      const courseKey = data[i][6];
+      const isEnrolled = enrolledSet.has(courseKey);
+      const state = isEnrolled ? "minus" : "plus";
+      const icon = isEnrolled ? "minus.png" : "plus.png";
+  
       let row = document.createElement("tr");
-      row.innerHTML =  `<td> ${data[i][0]} </td>
-                        <td> ${data[i][1]} ${data[i][2]} </td>
-                        <td> ${data[i][3]} </td>
-                        <td> ${data[i][4]}/${data[i][5]} </td>`;
+      row.innerHTML = `
+        <td> ${data[i][0]} </td>
+        <td> ${data[i][1]} ${data[i][2]} </td>
+        <td> ${data[i][3]} </td>
+        <td> ${data[i][4]}/${data[i][5]} </td>
+        ${
+          mode === "add"
+            ? `<td>
+                <button class="enrollBtn" data-state="${state}" data-course="${courseKey}" onclick="toggleEnroll(this)">
+                  <img src="/images/${icon}" alt="${state}" class="icon" />
+                </button>
+              </td>`
+            : ""
+        }
+      `;
       table.appendChild(row);
     }
-    content.appendChild(table)
+  
+    content.appendChild(table);
+  };
+  
 
-    console.log(data);
+  window.toggleEnroll = (button) => {
+    const img = button.querySelector("img");
+    const state = button.getAttribute("data-state");
+  
+    if (state === "plus") {
+      img.src = "/images/minus.png";
+      button.setAttribute("data-state", "minus");
+      handleAddCourse(button);
+    } else {
+      img.src = "/images/plus.png";
+      button.setAttribute("data-state", "plus");
+      handleRemoveCourse(button);
+    }
+  };
+  
+  function handleAddCourse(button) {
+    fetch('http://localhost:5000/addCourse', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include', // Needed if you're using session-based auth
+      body: JSON.stringify({ course: button.dataset.course })
+    })
+  }
+  
+  function handleRemoveCourse(button) {
+    fetch('http://localhost:5000/removeCourse', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include', // Needed if you're using session-based auth
+      body: JSON.stringify({ course: button.dataset.course })
+    })
+  }  
+
+  const loadCourses = async () => {
+    document.getElementById("AddCourseButton").style.backgroundColor = "#cac7c3"; // set un-selected
+    document.getElementById("CoursesButton").style.backgroundColor = "#aba8a4"; // set selected
+    populateTable("view");
   }
 
   const addCourses = async () => {
     document.getElementById("AddCourseButton").style.backgroundColor = "#aba8a4"; // set un-selected
     document.getElementById("CoursesButton").style.backgroundColor = "#cac7c3"; // set selected
-
-    let content = document.getElementById("TableContainer");
-    content.innerHTML = "";
+    populateTable("add");
   }
 
   return (
