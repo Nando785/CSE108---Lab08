@@ -190,9 +190,16 @@ def add_student_course():
     courseId = data['course']
     studentId = current_user.get_id()[4:]
     conn = openConnection(DB_FILE)
+    
     with conn:
         cursor = conn.cursor()
-        
+
+        # Check if class is full
+        cursor.execute('SELECT c_enrollmentCnt, c_maxEnrollment FROM courses WHERE c_classkey = ?', (courseId,))
+        result = cursor.fetchone()
+        if result and result[0] >= result[1]:
+            # closeConnection(conn, DB_FILE)
+            return jsonify({'message': 'Class is full'}), 400  # Return error
         
         # Register student in class
         cursor.execute('''INSERT INTO courseStats
