@@ -126,24 +126,38 @@ def get_current_user():
 @app.route('/profClasses', methods=['POST'])
 def return_prof_classes():
     conn = openConnection(DB_FILE)
-    requestData = request.get_json()
-    
-    if not requestData or 'profId' not in requestData:
-        return jsonify({"error": "profId is required"}), 400
+    user_id = current_user.get_id()
     
     with conn:
-        cursor = conn.cursor('''SELECT c_name, c_teacher, c_time, c_enrollmentCnt, c_maxEnrollment 
+        cursor = conn.cursor()
+        user_id = user_id[5:]
+        cursor.execute('''SELECT c_name, p_firstName, p_lastName, c_time, c_enrollmentCnt, c_maxEnrollment, c_classKey
                                     FROM courses
                                     JOIN professors
-                                        ON p_userkey = c_userkey
-                                    WHERE c_teacher = ?''', (requestData["profId"],))
-        
-        cursor.execute()
+                                        on c_teacherKey = p_userKey
+                                    WHERE c_teacherKey = ?''', (user_id,))
         data = cursor.fetchall()
-        
+                    
     closeConnection(conn, DB_FILE)
+    return jsonify(data)
+
+# @app.route('/profEdit', methods=['POST'])
+# def edit_student_grade():
+#     conn = openConnection(DB_FILE)
+#     user_id = current_user.get_id()
     
-    return(dict(data))
+#     with conn:
+#         cursor = conn.cursor()
+#         user_id = user_id[5:]
+#         cursor.execute(''' SELECT s_firstName, s_lastName, cs_grade 
+#                                 FROM students
+#                                 JOIN courseStats
+#                                     ON cs_userKey = s_userKey
+#                                 WHERE cs_classKey = ?''', (class_id,))
+#         data = cursor.fetchall()
+                    
+#     closeConnection(conn, DB_FILE)
+#     return jsonify(data)
 
 
 @app.route('/studentClasses', methods=['GET'])

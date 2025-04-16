@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom';
 function StudentHome() {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadCourses();
-  }, []);
+  // useEffect(() => {
+  //   loadCourses();
+  // }, []);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -25,6 +25,7 @@ function StudentHome() {
       }
     };
     checkUser();
+    loadCourses();
   }, [navigate]);
 
   const handleLogout = async () => {
