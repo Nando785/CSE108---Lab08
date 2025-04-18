@@ -117,7 +117,7 @@ function StudentHome() {
   };
   
   async function handleAddCourse(button) {
-    const res = fetch('http://localhost:5000/addCourse', {
+    const res = await fetch('http://localhost:5000/addCourse', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -125,8 +125,9 @@ function StudentHome() {
       credentials: 'include', // Needed if you're using session-based auth
       body: JSON.stringify({ course: button.dataset.course })
     })
-
-    if (!res.ok) {
+    let data = await res.json();
+    console.log("res: " + data.message);
+    if (!res.ok && data.message === "Class is full") {
       alert("Class Full!"); // Show "Class is full"
       
       // Revert the button UI back to plus
