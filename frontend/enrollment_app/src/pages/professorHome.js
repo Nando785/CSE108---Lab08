@@ -33,65 +33,138 @@ function ProfessorHome() {
     let res;
   
     if (mode === "view") {
+      // Fetch all of current professor's classes
       res = await fetch('http://localhost:5000/profClasses', { method: 'POST', credentials: 'include' });
       data = await res.json();
     } else {
-      // const res = await fetch('http://localhost:5000/studentClasses', { method: 'GET', credentials: 'include' });
-      // data = await res.json();
+      // Fetch all students + grades  in 
+      res = await fetch('http://localhost:5000/profEdit', { method: 'POST', credentials: 'include' });
+      data = await res.json();
     }
-    console.log(data);
-
-    // Create a set of enrolled course keys for quick lookup
-    // const enrolledSet = new Set(enrolledCourses.map(course => course[6]));
   
     let content = document.getElementById("TableContainer");
     content.innerHTML = "";
 
+    let table = document.createElement("table");
+    table.setAttribute("id", "table");
+
+    let title = document.getElementById("ContentTitle");
+
     if(mode === "view"){
-      let title = document.getElementById("ContentTitle");
       if (title) {
         title.innerHTML = "Your Courses";
       }
-    }else{
-      let title = document.getElementById("ContentTitle");
-      if (title) {
-        // back button here
-        title.innerHTML = `${data[0][0]}`;
-      }
-    }
-  
-    let table = document.createElement("table");
-    table.setAttribute("id", "table");
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>Course Name</th>
-          <th>Teacher</th>
-          <th>Time</th>
-          <th>Students Enrolled</th>
-          ${mode === "add" ? "<th>Action</th>" : ""}
-        </tr>
-      </thead>
-    `;
-  
-    for (let i = 0; i < data.length; i++) {
-      const courseKey = data[i][6];
-  
-      let row = document.createElement("tr");
-      row.innerHTML = `
-        <td> ${data[i][0]} </td>
-        <td> ${data[i][1]} ${data[i][2]} </td>
-        <td> ${data[i][3]} </td>
-        <td> ${data[i][4]}/${data[i][5]} </td>
+
+      // Add headers to table
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Course Name</th>
+            <th>Teacher</th>
+            <th>Time</th>
+            <th>Students Enrolled</th>
+            ${mode === "add" ? "<th>Action</th>" : ""}
+          </tr>
+        </thead>
       `;
-      table.appendChild(row);
+    
+      // Append class rows to table
+      for (let i = 0; i < data.length; i++) {
+        let row = document.createElement("tr");
+        
+        // Create class name + link
+        let courseNameCell = document.createElement("td");
+        let link = document.createElement("a");
+        link.href = "#";
+        link.textContent = data[i][0];
+        link.onclick = (e) => {
+          e.preventDefault();
+          editGrades();
+        };
+
+        courseNameCell.appendChild(link);
+        row.appendChild(courseNameCell);
+
+        // Append rest of class information
+        row.innerHTML = `
+          <td><a href="#" onclick="handleCourseClick('${data[i][6]}', '${data[i][0]}')">${data[i][0]}</a></td>
+          <td> ${data[i][1]} ${data[i][2]} </td>
+          <td> ${data[i][3]} </td>
+          <td> ${data[i][4]}/${data[i][5]} </td>
+        `;
+        table.appendChild(row);
+      }
+
     }
   
     content.appendChild(table);
   };
 
+  const handleCourseClick = async (classId, courseName) => {
+    const res = await fetch('http://localhost:5000/profEdit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ class_id: classId }),
+    });
+
+    const data = await res.json();
+    console.log(data);
+    let content = document.getElementById("TableContainer");
+    content.innerHTML = "";
+
+    let table = document.createElement("table");
+    table.setAttribute("id", "table");
+    let title = document.getElementById("ContentTitle");
+    title.innerHTML = '';
+
+    const backButton = document.createElement("button");
+    backButton.textContent = "Back to Courses";
+    backButton.style.marginTop = "10px";
+    backButton.addEventListener("click", () => {
+        populateTable(); // reloads the original class list table
+    });
+    title.appendChild(backButton);
+
+    if (title) {
+      // back button here
+      let className = document.createElement("p");
+      className.innerHTML = `${data[0][3]}`;
+      title.appendChild(className);
+      let className2 = document.createElement("p");
+      className2.innerHTML = `          `;
+      title.appendChild(className2);
+    }
+    
+
+
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Student Name</th>
+          <th>Grade</th>
+        </tr>
+      </thead>
+    `;
+
+    for (let i = 0; i < data.length; i++) {
+      let row = document.createElement("tr");
+      
+      row.innerHTML = `
+        <td> ${data[i][0]} ${data[i][1]} </td>
+        <td> ${data[i][2]} </td>
+      `;
+      table.appendChild(row);
+    }
+    content.appendChild(table);
+  };
+
+  window.handleCourseClick = handleCourseClick;
+
   const loadCourses = async () => {
-   populateTable("view"); 
+    populateTable("view"); 
   }
 
   const editGrades = async () => {

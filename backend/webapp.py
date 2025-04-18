@@ -141,24 +141,28 @@ def return_prof_classes():
     closeConnection(conn, DB_FILE)
     return jsonify(data)
 
-# @app.route('/profEdit', methods=['POST'])
-# def edit_student_grade():
-#     conn = openConnection(DB_FILE)
-#     user_id = current_user.get_id()
+@app.route('/profEdit', methods=['POST'])
+def edit_student_grade():
+    conn = openConnection(DB_FILE)
+    user_id = current_user.get_id()
+    data = request.get_json()
+    class_id = data['class_id']
+    print(data)
     
-#     with conn:
-#         cursor = conn.cursor()
-#         user_id = user_id[5:]
-#         cursor.execute(''' SELECT s_firstName, s_lastName, cs_grade 
-#                                 FROM students
-#                                 JOIN courseStats
-#                                     ON cs_userKey = s_userKey
-#                                 WHERE cs_classKey = ?''', (class_id,))
-#         data = cursor.fetchall()
+    with conn:
+        cursor = conn.cursor()
+        user_id = user_id[5:]
+        cursor.execute(''' SELECT s_firstName, s_lastName, cs_grade, c_name
+                                FROM students
+                                JOIN courseStats
+                                    ON cs_userKey = s_userKey
+                                JOIN courses
+                                    ON cs_classkey = c_classKey
+                                WHERE cs_classKey = ?''', (class_id,))
+        data = cursor.fetchall()
                     
-#     closeConnection(conn, DB_FILE)
-#     return jsonify(data)
-
+    closeConnection(conn, DB_FILE)
+    return jsonify(data)
 
 @app.route('/studentClasses', methods=['GET'])
 def return_student_courses():
