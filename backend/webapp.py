@@ -4,8 +4,20 @@ from flask_cors import CORS, cross_origin
 import sqlite3
 from sqlite3 import Error
 
+# Flask Admin Imports
+from flask_sqlalchemy import SQLAlchemy
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from flask import redirect, url_for
+import hashlib
+import os
+
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Needed for session management
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'university.sqlite')
+db = SQLAlchemy(app)
+
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True) # Allows requests from frontend
 
 login_manager = LoginManager()
@@ -20,6 +32,50 @@ class User(UserMixin):
 
     def get_id(self):
         return str(self.id)
+
+class Professor(db.Model):
+    __tablename__ = 'professors'    
+    p_userkey = db.Column(db.Integer, primary_key=True)
+    p_username = db.Column(db.String)
+    p_password = db.Column(db.String)
+    p_firstName = db.Column(db.String)
+    p_lastName = db.Column(db.String)
+
+class Student(db.Model):
+    __tablename__ = 'students'
+    s_userkey = db.Column(db.Integer, primary_key=True)
+    s_username = db.Column(db.String)
+    s_password = db.Column(db.String)
+    s_firstName = db.Column(db.String)
+    s_lastName = db.Column(db.String)
+
+class Course(db.Model):
+    __tablename__ = 'courses'
+    c_classKey = db.Column(db.Integer, primary_key=True)
+    c_name = db.Column(db.String)
+    c_teacherKey = db.Column(db.Integer)
+    c_time = db.Column(db.String)
+    c_enrollmentCnt = db.Column(db.Integer)
+    c_maxEnrollment = db.Column(db.Integer)
+
+class AdminModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.role == "admin"
+    
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login'))
+    
+    column_formatters = {
+        'p_password': lambda v, c, m, p: hashlib.sha256(str(m.p_userkey).encode()).hexdigest()[:10],
+    }
+
+admin = Admin(app, name='University Admin', template_mode='bootstrap3')
+
+with app.app_context():
+    db.create_all()  # Only creates tables if they don't exist, doesn't overwrite
+    admin.add_view(AdminModelView(Professor, db.session))
+    admin.add_view(AdminModelView(Student, db.session))
+    admin.add_view(AdminModelView(Course, db.session))
 
 # Function for connecting to database
 def openConnection(_dbFile):
@@ -41,7 +97,7 @@ def closeConnection(_conn, _dbFile):
     except Error as e:
         print(e)
         
-# == API CALL: ==    
+# == API CALLS: ==    
 
 @app.route('/user', methods=['POST'])
 def login():
@@ -55,18 +111,26 @@ def login():
     user_type = None
     user_id = None
 
+    # Check professors
     cursor.execute('SELECT p_userkey FROM professors WHERE p_username = ? AND p_password = ?', (username, password))
     result = cursor.fetchone()
     if result:
         user_type = "professor"
         user_id = f"prof_{result[0]}"
     else:
+        # Check students
         cursor.execute('SELECT s_userkey FROM students WHERE s_username = ? AND s_password = ?', (username, password))
         result = cursor.fetchone()
         if result:
             user_type = "student"
             user_id = f"stu_{result[0]}"
-
+        else:
+            # Check admins
+            cursor.execute('SELECT a_userkey FROM admins WHERE a_username = ? AND a_password = ?', (username, password))
+            result = cursor.fetchone()
+            if result:
+                user_type = "admin"
+                user_id = f"admin_{result[0]}"
     closeConnection(conn, DB_FILE)
 
     if user_type:
@@ -88,6 +152,8 @@ def load_user(user_id):
         return User(user_id, "professor")
     elif user_id.startswith("stu_"):
         return User(user_id, "student")
+    elif user_id.startswith("admin_"):
+        return User(user_id, "admin")
     return None
 
 @app.route('/current_user')

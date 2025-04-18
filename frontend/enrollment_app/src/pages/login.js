@@ -26,6 +26,9 @@ function Login() {
         navigate('/professorhome');
       } else if (data.role === 'student') {
         navigate('/studenthome');
+      } else if (data.role === 'admin') {
+        // navigate('/admin');
+        window.location.href = 'http://localhost:5000/admin';
       }
     } else {
       alert('Invalid username or password.');

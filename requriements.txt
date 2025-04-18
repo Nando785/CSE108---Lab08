@@ -11,3 +11,5 @@
 flask
 flask-Login
 flask-CORS
+flask-Admin
+flask-sqlalchemy
