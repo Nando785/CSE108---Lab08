@@ -112,7 +112,6 @@ function ProfessorHome() {
     });
 
     const data = await res.json();
-    // console.log("DATA in handleCourseClick: " + data);
     let content = document.getElementById("TableContainer");
     content.innerHTML = "";
 
@@ -129,70 +128,72 @@ function ProfessorHome() {
     });
     title.appendChild(backButton);
 
-    if (title) {
-      // back button here
-      let className = document.createElement("p");
-      className.innerHTML = `${data[0][3]}`;
-      title.appendChild(className);
-      let className2 = document.createElement("p");
-      className2.innerHTML = `          `;
-      title.appendChild(className2);
-    }
+    if(data.length != 0){
+      if (title) {
+        // back button here
+        let className = document.createElement("p");
+        className.innerHTML = `${data[0][3]}`;
+        title.appendChild(className);
+        let className2 = document.createElement("p");
+        className2.innerHTML = `          `;
+        title.appendChild(className2);
+      }
 
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>Student Name</th>
-          <th>Grade</th>
-        </tr>
-      </thead>
-    `;
-
-    for (let i = 0; i < data.length; i++) {
-      let row = document.createElement("tr");
-      
-      row.innerHTML = `
-        <td> ${data[i][0]} ${data[i][1]} </td>
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Grade</th>
+          </tr>
+        </thead>
       `;
 
-      // <td> ${data[i][2]} </td>
-      let gradeCell = document.createElement("td");
-      let gradeInput = document.createElement("input");
-      gradeInput.type = "next";
-      gradeInput.value = data[i][2];
-      gradeInput.dataset.classKey = classId;
-      gradeInput.dataset.studentId = data[i][4];
+      for (let i = 0; i < data.length; i++) {
+        let row = document.createElement("tr");
+        
+        row.innerHTML = `
+          <td> ${data[i][0]} ${data[i][1]} </td>
+        `;
 
-      gradeInput.addEventListener("change", async () => {
-        const newGrade = gradeInput.value;
-        const body = {
-            student_id: gradeInput.dataset.studentId,
-            class_id: gradeInput.dataset.classKey,
-            newGrade: newGrade
-        };
+        // <td> ${data[i][2]} </td>
+        let gradeCell = document.createElement("td");
+        let gradeInput = document.createElement("input");
+        gradeInput.type = "next";
+        gradeInput.value = data[i][2];
+        gradeInput.dataset.classKey = classId;
+        gradeInput.dataset.studentId = data[i][4];
 
-        const res = await fetch("http://localhost:5000/updateGrade", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify(body)
-        });
+        gradeInput.addEventListener("change", async () => {
+          const newGrade = gradeInput.value;
+          const body = {
+              student_id: gradeInput.dataset.studentId,
+              class_id: gradeInput.dataset.classKey,
+              newGrade: newGrade
+          };
 
-        if (res.ok) {
-            gradeInput.value = newGrade;
-            console.log("Grade updated.");
-        } else {
-            alert("Failed to update grade.");
+          const res = await fetch("http://localhost:5000/updateGrade", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              credentials: "include",
+              body: JSON.stringify(body)
+          });
+
+          if (res.ok) {
+              gradeInput.value = newGrade;
+              console.log("Grade updated.");
+          } else {
+              alert("Failed to update grade.");
+          }
+          });
+
+        gradeCell.appendChild(gradeInput);
+        row.appendChild(gradeCell);
+
+          table.appendChild(row);
         }
-        });
-
-      gradeCell.appendChild(gradeInput);
-      row.appendChild(gradeCell);
-
-        table.appendChild(row);
-      }
+    }
       content.appendChild(table);
     };
 
