@@ -152,7 +152,7 @@ def edit_student_grade():
     with conn:
         cursor = conn.cursor()
         user_id = user_id[5:]
-        cursor.execute(''' SELECT s_firstName, s_lastName, cs_grade, c_name
+        cursor.execute(''' SELECT s_firstName, s_lastName, cs_grade, c_name, s_userKey
                                 FROM students
                                 JOIN courseStats
                                     ON cs_userKey = s_userKey
@@ -249,6 +249,26 @@ def remove_student_course():
     
     closeConnection(conn, DB_FILE)
     return jsonify({'message': 'course removes successfully'}), 200
+
+@app.route('/updateGrade', methods=['POST'])
+def update_grade():
+    conn = openConnection(DB_FILE)
+    data = request.get_json()
+    class_id = data['class_id']
+    student_id = data['student_id']
+    new_grade = data['newGrade']
+    
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute('''UPDATE courseStats 
+                            SET cs_grade = ?
+                            WHERE cs_classKey = ?
+                                AND cs_userKey = ?''', (new_grade, class_id, student_id,))
+        data = cursor.fetchall()
+    
+    print("updated student id ", student_id, " grade in class ", class_id, " to new grade ", new_grade)
+    closeConnection(conn, DB_FILE)
+    return jsonify(data)
 
 if __name__ == '__main__':
     app.run(debug=True)

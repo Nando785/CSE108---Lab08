@@ -85,6 +85,7 @@ function ProfessorHome() {
         courseNameCell.appendChild(link);
         row.appendChild(courseNameCell);
 
+        console.log("DATA in populateTable: ", data);
         // Append rest of class information
         row.innerHTML = `
           <td><a href="#" onclick="handleCourseClick('${data[i][6]}', '${data[i][0]}')">${data[i][0]}</a></td>
@@ -111,7 +112,7 @@ function ProfessorHome() {
     });
 
     const data = await res.json();
-    console.log(data);
+    // console.log("DATA in handleCourseClick: " + data);
     let content = document.getElementById("TableContainer");
     content.innerHTML = "";
 
@@ -137,8 +138,6 @@ function ProfessorHome() {
       className2.innerHTML = `          `;
       title.appendChild(className2);
     }
-    
-
 
     table.innerHTML = `
       <thead>
@@ -154,12 +153,48 @@ function ProfessorHome() {
       
       row.innerHTML = `
         <td> ${data[i][0]} ${data[i][1]} </td>
-        <td> ${data[i][2]} </td>
       `;
-      table.appendChild(row);
-    }
-    content.appendChild(table);
-  };
+
+      // <td> ${data[i][2]} </td>
+      let gradeCell = document.createElement("td");
+      let gradeInput = document.createElement("input");
+      gradeInput.type = "next";
+      gradeInput.value = data[i][2];
+      gradeInput.dataset.classKey = classId;
+      gradeInput.dataset.studentId = data[i][4];
+
+      gradeInput.addEventListener("change", async () => {
+        const newGrade = gradeInput.value;
+        const body = {
+            student_id: gradeInput.dataset.studentId,
+            class_id: gradeInput.dataset.classKey,
+            newGrade: newGrade
+        };
+
+        const res = await fetch("http://localhost:5000/updateGrade", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+            gradeInput.value = newGrade;
+            console.log("Grade updated.");
+        } else {
+            alert("Failed to update grade.");
+        }
+        });
+
+      gradeCell.appendChild(gradeInput);
+      row.appendChild(gradeCell);
+
+        table.appendChild(row);
+      }
+      content.appendChild(table);
+    };
 
   window.handleCourseClick = handleCourseClick;
 
